@@ -1,257 +1,94 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Media Wall Shopping List</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<style>
-  /* one reading column: summary (total, left to buy, per shop) first, then the list by area, then the build notes */
-  :root {
-    --bg: #f2f3f4; --surface: #ffffff; --ink: #1b1d20; --muted: #5d636a; --line: #dadde1;
-    --accent: #9c6216; --accent-soft: #f4e7d4; --done: #8a9098;
-    --display: 'Archivo', 'Arial Narrow', system-ui, sans-serif;
-    --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    --mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #131517; --surface: #1c1f22; --ink: #eceef0; --muted: #9ba2aa; --line: #30353b;
-      --accent: #e2a654; --accent-soft: #3a2c19; --done: #6c737b; color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #131517; --surface: #1c1f22; --ink: #eceef0; --muted: #9ba2aa; --line: #30353b;
-    --accent: #e2a654; --accent-soft: #3a2c19; --done: #6c737b; color-scheme: dark;
-  }
-  body { background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--body); }
-  .wrap { max-width: 920px; margin: 0 auto; padding-block: 40px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 48px; }
-  h1, h2, h3 { font-family: var(--display); font-stretch: 82%; text-wrap: balance; margin: 0; line-height: 1.1; }
-  h1 { font-size: clamp(32px, 6vw, 48px); font-weight: 800; letter-spacing: -0.01em; }
-  h2 { font-size: 26px; font-weight: 700; }
-  h3 { font-size: 19px; font-weight: 700; }
-  p { margin: 0; }
-  a { color: var(--accent); }
-  a:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-
-  header { display: grid; gap: 14px; }
-  .spec { color: var(--muted); max-width: 65ch; }
-  .spec b { color: var(--ink); font-weight: 500; }
-
-  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-  .summary > div { background: var(--surface); padding: 16px 18px; display: grid; gap: 6px; align-content: start; min-width: 0; }
-  .big { font: 700 30px/1 var(--display); font-stretch: 82%; font-variant-numeric: tabular-nums; }
-  .big.accent { color: var(--accent); }
-  .shops { display: grid; gap: 4px; }
-  .shops div { display: flex; justify-content: space-between; gap: 12px; }
-  .shops span:first-child { color: var(--muted); }
-  .hint { font-size: 13px; color: var(--muted); }
-
-  .group { display: grid; gap: 12px; }
-  .group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
-  .rows { list-style: none; margin: 0; padding: 0; display: grid; }
-  .row { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 4px 14px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: start; }
-  .row input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); cursor: pointer; }
-  .item { display: grid; gap: 4px; min-width: 0; }
-  .item label { font-weight: 500; cursor: pointer; }
-  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); }
-  .shop { font: 500 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 6px; border-radius: 3px; background: var(--accent-soft); color: var(--ink); }
-  .note { font-size: 13.5px; color: var(--muted); max-width: 70ch; }
-  .price { text-align: right; white-space: nowrap; display: grid; gap: 2px; }
-  .price .line { font-weight: 500; }
-  .price .each { font-size: 12px; color: var(--muted); }
-  .row.done label, .row.done .price .line { color: var(--done); text-decoration: line-through; }
-  .row.done .note { display: none; }
-
-  .notes { display: grid; gap: 28px; }
-  .note-card { display: grid; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .note-card ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
-  .table-wrap { overflow-x: auto; }
-  table { border-collapse: collapse; font-size: 14px; min-width: 420px; }
-  th, td { text-align: left; padding: 6px 16px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font: 500 11px/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-  td.num { white-space: nowrap; }
-  button { font: 500 13px var(--body); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
-  button:hover { color: var(--ink); border-color: var(--muted); }
-
-  @media (max-width: 520px) {
-    .row { grid-template-columns: 28px minmax(0, 1fr); }
-    .price { grid-column: 2; text-align: left; display: flex; gap: 10px; align-items: baseline; }
-  }
-  body { margin: 0; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ground Floor 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <script type="module" crossorigin src="./assets/index-CvvQzs8N.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CWNzR3lC.css">
 </head>
 <body>
-
-<div class="wrap">
-  <header>
-    <span class="eyebrow">Ground floor · living room</span>
-    <h1>Media wall shopping list</h1>
-    <p class="spec">BESTÅ cabinets in <b>white with SELSVIKEN gloss doors</b> either side of a <b>127 cm INMOZATA fire</b>, a <b>180 × 110 cm Crystal Marble panel</b> floating behind a <b>55″ TV</b>, <b>grey slats on black felt</b>, and a <b>5-cube bookcase</b> on each side. Prices checked October 2026; <span class="num">~</span> marks an estimate.</p>
-  </header>
-
-  <section class="summary" aria-label="Totals">
-    <div>
-      <span class="eyebrow">Total</span>
-      <span class="big num" id="total"></span>
-      <span class="hint">Table and chairs are from the store and not counted.</span>
-    </div>
-    <div>
-      <span class="eyebrow">Left to buy</span>
-      <span class="big accent num" id="left"></span>
-      <span class="hint" id="left-hint"></span>
-    </div>
-    <div>
-      <span class="eyebrow">By shop</span>
-      <div class="shops num" id="shops"></div>
-    </div>
-  </section>
-
-  <div id="list" class="notes"></div>
-
-  <section class="notes" aria-labelledby="build">
-    <div class="group-head"><h2 id="build">Build notes</h2></div>
-
-    <article class="note-card">
-      <h3>Buying from IKEA</h3>
-      <ul>
-        <li>Everything IKEA is on one order: both short frames, the 192 cm frame, the doors, hinges, rails, the gloss top panel and the sofa.</li>
-        <li>The BESTÅ 60×40×192 frame comes flat-packed in a box nearly 2 m long. Check it fits in the car, or add it to the sofa delivery.</li>
-        <li>The Cut My panel is made to order, so order it early.</li>
-      </ul>
-    </article>
-
-    <article class="note-card">
-      <h3>Fire box</h3>
-      <p class="note">A third cabinet between the two BESTÅ, with the fire in its face. The body is cut from the 192 cm BESTÅ frame, so it is the same matt white as the cabinets. The face is cut from the gloss top panel, so it matches the SELSVIKEN doors.</p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Part</th><th>Cut (mm)</th><th>From</th></tr></thead>
-          <tbody>
-            <tr><td>Top and bottom</td><td class="num">2 × 1310 × 400</td><td>The frame's long sides</td></tr>
-            <tr><td>Ends</td><td class="num">2 × 344 × 400</td><td>The frame's top and bottom</td></tr>
-            <tr><td>Face</td><td class="num">1310 × 380</td><td>BESTÅ top panel, high-gloss white</td></tr>
-            <tr><td>Hole in the face</td><td class="num">1250 × 327</td><td>Measure the fire before cutting</td></tr>
-          </tbody>
-        </table>
+<div id="stage">
+  <div id="labels"></div>
+  <section class="panel" id="panel" aria-label="View controls">
+    <div class="panel-head">
+      <div>
+        <h1>Ground floor</h1>
+        <p class="sub">4.85 &times; 8.77 m ext &middot; scaled from the <b>3.06 m</b> wall</p>
       </div>
-      <ul>
-        <li>The top and bottom run the full width, so their cut ends sit hidden against the BESTÅ beside them.</li>
-        <li>The ends fit between them on small brackets inside the box, where the fire hides them.</li>
-        <li>The fire's frame covers the edges of the hole. Edge any cut gloss edge that shows with gloss white tape.</li>
-        <li>Mount the box about 8 mm forward of the cabinet frames so the face sits flush with the doors.</li>
-      </ul>
-    </article>
-
-    <article class="note-card">
-      <h3>Floating panel</h3>
-      <ul>
-        <li>Egger F800 Crystal Marble, 18 mm, cut to 1800 × 1100 and edged all round by Cut My. It weighs about 23 kg. Keep the corners square.</li>
-        <li>It hangs on a French cleat: rip one 2.4 m length of 22 × 100 timber at 45°. Screw one half through the slats into the wall with concrete screws, and glue and screw the other half to the back of the panel.</li>
-        <li>A 22 mm spacer at the bottom keeps it plumb. Everything sits 15 cm in from the panel's edges, so the panel stands 4.4 cm off the slats.</li>
-        <li>The TV mount goes on its own blocks into the wall, not on the panel.</li>
-        <li>Run the TV cable conduit before the slats go up.</li>
-      </ul>
-    </article>
-
-    <article class="note-card">
-      <h3>Hanging the bookcases</h3>
-      <ul>
-        <li>The Homme Concept units are open-backed and made to stand on the floor, so hang them with brackets. Each one is a 3-cube unit with a 2-cube unit on top. Screw the two units together.</li>
-        <li>Fit two 40 mm angle brackets at the back of every cube, on the shelf where the books hide them. That is 10 brackets, or three 4-packs, per bookcase.</li>
-        <li>Screw each bracket down into the shelf with screws no longer than 10 mm, since the board is 12 mm. Screw it back through the 21 mm slats into the wall with plugs and 5 × 70 mm screws.</li>
-        <li>Each shelf then carries its own books straight into the wall. The brackets are silver; spray them white if they show.</li>
-      </ul>
-    </article>
-
-    <div><button type="button" id="reset">Clear all ticks</button></div>
+      <button id="panel-toggle" class="icon-btn" type="button" aria-expanded="true" aria-controls="panel-body" title="Minimise controls">&minus;</button>
+    </div>
+    <div class="panel-body" id="panel-body">
+    <div class="group">
+      <span class="group-label" id="lbl-view">View</span>
+      <div class="seg" role="group" aria-labelledby="lbl-view">
+        <button id="view-media" type="button" data-view="media" aria-pressed="true">Media wall</button>
+        <button id="view-sofa" type="button" data-view="sofa" aria-pressed="false">From the sofa</button>
+        <button id="view-overview" type="button" data-view="overview" aria-pressed="false">Overview</button>
+        <button id="view-top" type="button" data-view="top" aria-pressed="false">Top down</button>
+        <button id="view-patio" type="button" data-view="patio" aria-pressed="false">From the patio</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-light">Light</span>
+      <div class="seg" role="group" aria-labelledby="lbl-light">
+        <button id="light-day" type="button" data-mood="day" aria-pressed="true">Day</button>
+        <button id="light-evening" type="button" data-mood="evening" aria-pressed="false">Evening</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-walls">Walls</span>
+      <div class="seg" role="group" aria-labelledby="lbl-walls">
+        <button id="walls-full" type="button" data-walls="2.4" aria-pressed="true">Full height</button>
+        <button id="walls-cut" type="button" data-walls="1.1" aria-pressed="false">Cut at 1.1 m</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-chairs">Chairs</span>
+      <div class="seg" role="group" aria-labelledby="lbl-chairs">
+        <button id="chairs-in" type="button" data-chairs="in" aria-pressed="true">Pushed in</button>
+        <button id="chairs-out" type="button" data-chairs="out" aria-pressed="false">Pulled out</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-guests">Guest chairs</span>
+      <div class="seg" role="group" aria-labelledby="lbl-guests">
+        <button id="guests-off" type="button" data-guests="off" aria-pressed="true">In storage</button>
+        <button id="guests-on" type="button" data-guests="on" aria-pressed="false">Brought out</button>
+      </div>
+    </div>
+    <p class="status" id="status" aria-live="polite">Loading the IKEA sofa model&hellip;</p>
+    </div>
   </section>
+
+  <aside class="panel editor" id="editor" aria-label="Design">
+    <div class="panel-head">
+      <div>
+        <h2>Design</h2>
+        <p class="sub" id="design-status" aria-live="polite">Loading&hellip;</p>
+      </div>
+      <div class="head-actions">
+        <button id="undo" class="icon-btn" type="button" title="Undo (Ctrl+Z)" aria-label="Undo">&#8630;</button>
+        <button id="redo" class="icon-btn" type="button" title="Redo (Ctrl+Y)" aria-label="Redo">&#8631;</button>
+        <button id="editor-toggle" class="icon-btn" type="button" aria-expanded="true" aria-controls="editor-body" title="Minimise the design panel">&minus;</button>
+      </div>
+    </div>
+    <div class="panel-body" id="editor-body">
+      <div class="tabs" role="tablist" aria-label="Design panel">
+        <button id="tab-edit" type="button" role="tab" aria-selected="true" aria-controls="edit-pane">Edit</button>
+        <button id="tab-shop" type="button" role="tab" aria-selected="false" aria-controls="shop-pane">Shopping list</button>
+      </div>
+      <div id="edit-pane" role="tabpanel" aria-labelledby="tab-edit">
+        <div class="chips" id="object-chips"></div>
+        <div id="inspector"></div>
+      </div>
+      <div id="shop-pane" role="tabpanel" aria-labelledby="tab-shop" hidden></div>
+    </div>
+  </aside>
+  <div class="hint">drag to orbit &middot; right-drag to pan &middot; scroll to zoom &middot; click an object to edit it</div>
 </div>
-
-<script>
-  const ITEMS = [
-    { group: 'Media wall', name: 'BESTÅ frame, white, 60×40×38', qty: 2, each: 20, url: 'https://www.ikea.com/gb/en/p/besta-frame-white-70245848/' },
-    { group: 'Media wall', name: 'SELSVIKEN door, high-gloss white, 60×38', qty: 2, each: 15, url: 'https://www.ikea.com/gb/en/p/selsviken-door-drawer-front-high-gloss-white-20291630/' },
-    { group: 'Media wall', name: 'BESTÅ push-open hinges (pair)', qty: 2, each: 5, url: 'https://www.ikea.com/gb/en/p/besta-soft-closing-push-open-hinge-80261258/' },
-    { group: 'Media wall', name: 'BESTÅ suspension rail, 60 cm', qty: 2, each: 5, url: 'https://www.ikea.com/gb/en/p/besta-suspension-rail-silver-colour-70488318/' },
-    { group: 'Media wall', name: 'INMOZATA electric fire 127 cm (50″)', qty: 1, each: 229, url: 'https://www.amazon.co.uk/dp/B0BC1GTPNJ/' },
-    { group: 'Media wall', name: 'BESTÅ frame, white, 60×40×192 (cut down for the fire box body)', qty: 1, each: 40, url: 'https://www.ikea.com/gb/en/p/besta-frame-white-00245842/', note: 'Cut list in the build notes below.' },
-    { group: 'Media wall', name: 'BESTÅ top panel, high-gloss white, 180×42 (fire box face)', qty: 1, each: 25, url: 'https://www.ikea.com/gb/en/p/besta-top-panel-high-gloss-white-40611348/' },
-    { group: 'Media wall', name: 'Fire box fixings: small angle brackets and short screws, gloss white edging tape, wall batten, masonry plugs and screws', qty: 1, each: 15, approx: true },
-    { group: 'Media wall', name: 'Floating panel: Egger Crystal Marble MFC, soft veins, cut to size', qty: 1, each: 171.49, url: 'https://www.cutmy.co.uk/wood/mfc-board/egger/f800-st9-crystal-marble/', note: '180 × 110 cm, 18 mm, cut to size with matching edging all round.' },
-    { group: 'Media wall', name: 'Floating panel fixings: 2× planed timber 22×100 mm, 2.4 m, concrete screws, hybrid adhesive, wood screws', qty: 1, each: 40, approx: true, note: 'For the French cleat, the spacer and the TV blocks.' },
-    { group: 'Media wall', name: 'Acoustic slat panel 2400×600, grey on black felt', qty: 6, each: 20 },
-    { group: 'Media wall', name: 'COB LED strip, 24 V, with driver (warm white, 2700–3000 K)', qty: 1, each: 30, approx: true },
-    { group: 'Bookcases', name: 'Homme Concept 3-cube bookcase, white', qty: 2, each: 19, approx: true, url: 'https://www.amazon.co.uk/dp/B0DQ1YDPQW/' },
-    { group: 'Bookcases', name: 'Homme Concept 2-cube bookcase, white', qty: 2, each: 14, approx: true, url: 'https://www.amazon.co.uk/dp/B0DQ1YYLYP/' },
-    { group: 'Bookcases', name: '40 mm angle brackets (three 4-packs), masonry plugs and screws, per bookcase', qty: 2, each: 10, approx: true, url: 'https://www.screwfix.com/p/essentials-corner-brackets-silver-40mm-x-40mm-x-16mm-4-pack/201ta', note: 'Two brackets at the back of every cube. See the build notes.' },
-    { group: 'Living room', name: 'IKEA EKHOLMA corner sofa, Hakebo dark grey', qty: 1, each: 799, url: 'https://www.ikea.com/gb/en/p/ekholma-corner-sofa-4-seat-with-open-end-hakebo-dark-grey-s29563075/' },
-    { group: 'Living room', name: 'Marble table and 4 chairs, taupe faux leather', qty: 1, each: null, note: 'From the store.' },
-  ];
-  const SHOPS = [['ikea.com', 'IKEA'], ['amazon.co.uk', 'Amazon'], ['cutmy.co.uk', 'Cut My'], ['screwfix.com', 'Screwfix']];
-  const shopOf = (it) => (it.url ? SHOPS.find(([host]) => it.url.includes(host))[1] : it.each == null ? 'In store' : 'Any DIY shop');
-  const gbp = (n) => '£' + (Number.isInteger(n) ? n.toLocaleString('en-GB') : n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const cost = (it) => (it.each == null ? 0 : it.qty * it.each);
-  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-
-  const KEY = 'media-wall-ticks';
-  let ticks = {};
-  try { ticks = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { ticks = {}; }
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch {} };
-
-  function renderList() {
-    const groups = [...new Set(ITEMS.map((it) => it.group))];
-    document.getElementById('list').innerHTML = groups.map((g) => {
-      const items = ITEMS.map((it, i) => [it, i]).filter(([it]) => it.group === g);
-      const sub = items.reduce((s, [it]) => s + cost(it), 0);
-      const anyApprox = items.some(([it]) => it.approx);
-      return `<section class="group" aria-labelledby="g-${g.replace(/\W/g, '')}">
-        <div class="group-head"><h2 id="g-${g.replace(/\W/g, '')}">${g}</h2><span class="num">${anyApprox ? '~' : ''}${gbp(sub)}</span></div>
-        <ul class="rows">${items.map(([it, i]) => `
-          <li class="row" data-i="${i}">
-            <input type="checkbox" id="item-${i}">
-            <div class="item">
-              <label for="item-${i}">${esc(it.name)}</label>
-              <div class="meta"><span class="shop">${shopOf(it)}</span>${it.url ? `<a href="${it.url}" target="_blank" rel="noopener">View product</a>` : ''}</div>
-              ${it.note ? `<p class="note">${esc(it.note)}</p>` : ''}
-            </div>
-            <div class="price num">${it.each == null ? '<span class="line">—</span>' : `<span class="line">${it.approx ? '~' : ''}${gbp(cost(it))}</span>${it.qty > 1 ? `<span class="each">${it.qty} × ${gbp(it.each)}</span>` : ''}`}</div>
-          </li>`).join('')}
-        </ul>
-      </section>`;
-    }).join('');
-  }
-
-  function renderTotals() {
-    const priced = ITEMS.filter((it) => it.each != null);
-    const total = priced.reduce((s, it) => s + cost(it), 0);
-    const left = priced.filter((it) => !ticks[ITEMS.indexOf(it)]);
-    document.getElementById('total').textContent = '~' + gbp(total);
-    document.getElementById('left').textContent = (left.length ? '~' : '') + gbp(left.reduce((s, it) => s + cost(it), 0));
-    document.getElementById('left-hint').textContent = left.length ? `${left.length} of ${priced.length} lines still to buy. Tick each one as you buy it.` : 'Everything is bought.';
-    const byShop = new Map();
-    for (const it of left) byShop.set(shopOf(it), (byShop.get(shopOf(it)) || 0) + cost(it));
-    document.getElementById('shops').innerHTML = [...byShop].sort((a, b) => b[1] - a[1]).map(([s, v]) => `<div><span>${s}</span><span>${gbp(Math.round(v * 100) / 100)}</span></div>`).join('') || '<div><span>Nothing left</span><span></span></div>';
-    document.querySelectorAll('.row').forEach((row) => {
-      const on = !!ticks[row.dataset.i];
-      row.classList.toggle('done', on);
-      row.querySelector('input').checked = on;
-    });
-  }
-
-  renderList();
-  renderTotals();
-  document.getElementById('list').addEventListener('change', (e) => {
-    const row = e.target.closest('.row');
-    if (!row) return;
-    if (e.target.checked) ticks[row.dataset.i] = true; else delete ticks[row.dataset.i];
-    save(); renderTotals();
-  });
-  document.getElementById('reset').addEventListener('click', () => { ticks = {}; save(); renderTotals(); });
-</script>
 </body>
 </html>
