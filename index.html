@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <script type="module" crossorigin src="./assets/index-Bc4Y6HGC.js"></script>
+  <script type="module" crossorigin src="./assets/index-Cm7GuM3I.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DTgVTzY8.css">
 </head>
 <body>
@@ -41,10 +41,31 @@
       </div>
     </div>
     <div class="group">
+      <span class="group-label" id="lbl-layout">Media wall and sofa</span>
+      <div class="seg" role="group" aria-labelledby="lbl-layout">
+        <button id="layout-planned" type="button" data-layout="planned" aria-pressed="true">As planned</button>
+        <button id="layout-swapped" type="button" data-layout="swapped" aria-pressed="false">Swapped</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-open-end">Sofa&rsquo;s open end</span>
+      <div class="seg" role="group" aria-labelledby="lbl-open-end">
+        <button id="open-end-patio" type="button" data-open-end="patio" aria-pressed="true">Faces the patio</button>
+        <button id="open-end-tv" type="button" data-open-end="tv" aria-pressed="false">Faces the TV</button>
+      </div>
+    </div>
+    <div class="group">
       <span class="group-label" id="lbl-walls">Wall behind the sofa</span>
       <div class="seg" role="group" aria-labelledby="lbl-walls">
         <button id="walls-full" type="button" data-walls="2.4" aria-pressed="true">Full height</button>
         <button id="walls-cut" type="button" data-walls="1.1" aria-pressed="false">Half wall, 1.1 m</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="group-label" id="lbl-doors">Doors</span>
+      <div class="seg" role="group" aria-labelledby="lbl-doors">
+        <button id="doors-open" type="button" data-doors="open" aria-pressed="true">Open</button>
+        <button id="doors-shut" type="button" data-doors="shut" aria-pressed="false">Closed</button>
       </div>
     </div>
     <div class="group">
